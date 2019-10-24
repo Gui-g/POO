@@ -1,0 +1,9 @@
+Aluno: Ed
+Média: 6.25
+Aluno: João
+Média: 4.75
+Aluno: Mario
+Média: 3.75
+Aluno: Maria
+Média: 3.0
+Média da Turma: 4.4375
