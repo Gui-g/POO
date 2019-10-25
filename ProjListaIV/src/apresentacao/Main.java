@@ -40,7 +40,7 @@ public class Main {
 					} catch (IOException e) {
 						e.printStackTrace();
 					} catch (AgendaVaziaException e) {
-						e.printStackTrace();
+						System.out.println("Agenda vazia");
 					}
 					System.out.println();
 					break;
@@ -50,7 +50,7 @@ public class Main {
 					} catch (IOException e) {
 						e.printStackTrace();
 					} catch (AgendaVaziaException e) {
-						e.printStackTrace();
+						System.out.println("Agenda vazia");
 					}
 					System.out.println();
 					break;
@@ -79,9 +79,9 @@ public class Main {
 							try {
 								System.out.println(agenda.buscarContatos(in.nextLine()).toString());
 							} catch (ContatoNaoEncontradoException e) {
-								e.printStackTrace();
+								System.out.println("Contato não encontrado");
 							} catch (AgendaVaziaException e) {
-								e.printStackTrace();
+								System.out.println("Agenda vazia");
 							}
 							break;
 						case 2:
@@ -89,9 +89,9 @@ public class Main {
 							try {
 								System.out.println(agenda.buscarContato(in.nextInt()).toString());
 							} catch (ContatoNaoEncontradoException e) {
-								e.printStackTrace();
+								System.out.println("Contato não encontrado");
 							} catch (AgendaVaziaException e) {
-								e.printStackTrace();
+								System.out.println("Agenda vazia");
 							}
 							break;
 						default:
@@ -104,7 +104,7 @@ public class Main {
 						for(Contato contato : agenda.getContatos())
 							System.out.println(contato.toString());
 					} catch (AgendaVaziaException e) {
-						e.printStackTrace();
+						System.out.println("Agenda vazia");
 					}
 					System.out.println();
 					break;
@@ -120,9 +120,9 @@ public class Main {
 								for(Contato contato : agenda.buscarContatos(nome))
 									agenda.removerContato(contato);
 							} catch (ContatoNaoEncontradoException e) {
-								e.printStackTrace();
+								System.out.println("Contato não encontrado");
 							} catch (AgendaVaziaException e) {
-								e.printStackTrace();
+								System.out.println("Agenda vazia");
 							}
 							break;
 						case 2:
@@ -132,9 +132,9 @@ public class Main {
 							try {
 								agenda.removerContato(agenda.buscarContato(telefone));
 							} catch (ContatoNaoEncontradoException e) {
-								e.printStackTrace();
+								System.out.println("Contato não encontrado");
 							} catch (AgendaVaziaException e) {
-								e.printStackTrace();
+								System.out.println("Agenda vazia");
 							}
 							break;
 						default:
@@ -150,9 +150,9 @@ public class Main {
 					} catch (IOException e) {
 						e.printStackTrace();
 					} catch (AgendaVaziaException e) {
-						e.printStackTrace();
+						System.out.println("Agenda vazia");
 					}
-					System.out.println();
+					agenda.getManipulador().fechaArquivo();
 					break;
 				default:
 					break;

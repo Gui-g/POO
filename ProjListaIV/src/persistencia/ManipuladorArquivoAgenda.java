@@ -85,19 +85,17 @@ public class ManipuladorArquivoAgenda implements ManipularArquivo<Contato> {
 		
 		int singleCharInt;
 		char singleChar;
-		String obj = "a,1";
+		String obj = "";
 		Contato contatoAux = new Contato();
 		
 		try {
 			while((singleCharInt = fis.read()) != -1) {
-				if(singleCharInt >= 48 && singleCharInt <= 57 || singleCharInt >= 97 && singleCharInt <= 122) {
-					singleChar = (char) singleCharInt;
-					obj += singleChar;
-				}
-				else {
+				if(singleCharInt == 59) {
 					contatoAux = toObjeto(obj);
 					contatos.add(contatoAux);
 					obj = "";
+				}
+				else {
 					singleChar = (char) singleCharInt;
 					obj += singleChar;
 				}
@@ -130,6 +128,7 @@ public class ManipuladorArquivoAgenda implements ManipularArquivo<Contato> {
 			info = toLinhaArquivo(contato);
 			byte[] str = info.getBytes();
 			oS.write(str);
+			oS.write((byte) ';');
 		}
 		
 	    oS.close();
