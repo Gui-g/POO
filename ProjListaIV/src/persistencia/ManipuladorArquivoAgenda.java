@@ -21,18 +21,18 @@ public class ManipuladorArquivoAgenda implements ManipularArquivo<Contato> {
 	public String getCaminho() {
 		return caminho;
 	}
-	/*
+	
 	public ManipuladorArquivoAgenda (String caminho) {
 		this.caminho = caminho;
-	}*/
+	}
 
 	@Override
 	public void abreArquivo(int opt) throws IOException {
 		switch(opt) {
 			case 1:
-				reader = new FileReader("agenda.txt");
+				reader = new FileReader(caminho + ".txt");
 			case 2:
-				fis = new FileInputStream("agenda.bin");
+				fis = new FileInputStream(caminho + ".bin");
 		}
 	}
 

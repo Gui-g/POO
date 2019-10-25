@@ -13,10 +13,8 @@ public class Agenda {
 	
 	public Agenda(){
 		listaContatos = new ArrayList<Contato>();
-		manipulador = new ManipuladorArquivoAgenda();
+		manipulador = new ManipuladorArquivoAgenda("agenda");
 	}
-	
-	
 	
 	public ManipuladorArquivoAgenda getManipulador() {
 		return manipulador;
