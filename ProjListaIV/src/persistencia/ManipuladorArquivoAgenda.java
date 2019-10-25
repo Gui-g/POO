@@ -40,6 +40,7 @@ public class ManipuladorArquivoAgenda implements ManipularArquivo<Contato> {
 	public void fechaArquivo() {
 		try {
 			reader.close();
+			fis.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
