@@ -11,8 +11,9 @@ import javax.swing.text.MaskFormatter;
 
 import dados.*;
 import negocio.Sistema;
+import persistencia.BemDAO;
+import persistencia.ContrachequeDAO;
 import persistencia.ContribuinteDAO;
-import persistencia.DependenteDAO;
 import persistencia.NotaFiscalDAO;
 import persistencia.PessoaJuridicaDAO;
 
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
 import javax.swing.JScrollPane;
@@ -35,8 +37,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.JComboBox;
 import javax.swing.JRadioButton;
 import javax.swing.ButtonGroup;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class Application {
 
@@ -65,9 +65,12 @@ public class Application {
 	private JSpinner spinnerIdadeDep;
 	private JComboBox<String> comboFiltroDep;
 	private JComboBox<String> comboFiltroCpfDoc;
-
-	private int ID;
+	private JSpinner spinnerValorBem;
+	private JButton btnCancelarBem;
 	private final ButtonGroup buttonGroup = new ButtonGroup();
+	private final ButtonGroup buttonGroup2 = new ButtonGroup();
+	private final ButtonGroup buttonGroup3 = new ButtonGroup();
+	private final ButtonGroup buttonGroup4 = new ButtonGroup();
 	private Sistema sistema = new Sistema();
 	private JTextField txtNomePJ;
 	private JTextField txtEnderecoPJ;
@@ -77,6 +80,25 @@ public class Application {
 	private JTextField txtEndDep;
 	private JTable tblDep;
 	private JTable tblDocs;
+	private JTextField txtNomeBem;
+	private JTextField txtTipoBem;
+	private JTable tblBens;
+	private JComboBox<String> comboFiltroCpfBem;
+	private JComboBox<String> comboCpfBens;
+	private JRadioButton rdbtnBens;
+	private JComboBox<String> comboCpfConsulta;
+	private JRadioButton rdbtnDespesas;
+	private JRadioButton rdbtnReceitas;
+	private JRadioButton rdbtnPessoaJuridica;
+	private JRadioButton rdbtnContracheques;
+	private JRadioButton rdbtnNotasFiscais;
+	private JComboBox<String> comboCnpjConsulta;
+	
+	private int ID;
+	private JTextField txtTotal;
+	private JTable tblConsulta;
+	private JTextField txtTotalCnpj;
+	private JTable tblConsultaCnpj;
 	
 	/**
 	 * Launch the application.
@@ -128,41 +150,41 @@ public class Application {
 		panel.setLayout(null);
 		
 		JLabel lblNome = new JLabel("Nome");
-		lblNome.setBounds(75, 42, 97, 16);
+		lblNome.setBounds(80, 28, 97, 16);
 		panel.add(lblNome);
 		
 		JLabel lblEndereo = new JLabel("Endere\u00E7o");
-		lblEndereo.setBounds(75, 79, 97, 16);
+		lblEndereo.setBounds(80, 82, 97, 16);
 		panel.add(lblEndereo);
 		
 		JLabel lblCpf = new JLabel("CPF");
-		lblCpf.setBounds(75, 114, 97, 16);
+		lblCpf.setBounds(80, 128, 97, 16);
 		panel.add(lblCpf);
 		
 		JLabel lblIdade = new JLabel("Idade");
-		lblIdade.setBounds(75, 155, 96, 16);
+		lblIdade.setBounds(80, 175, 96, 16);
 		panel.add(lblIdade);
 		
 		txtNome = new JTextField();
 		txtNome.setEnabled(false);
-		txtNome.setBounds(257, 39, 310, 22);
+		txtNome.setBounds(257, 25, 310, 22);
 		panel.add(txtNome);
 		txtNome.setColumns(10);
 		
 		txtEndereco = new JTextField();
 		txtEndereco.setEnabled(false);
-		txtEndereco.setBounds(257, 76, 310, 22);
+		txtEndereco.setBounds(257, 79, 310, 22);
 		panel.add(txtEndereco);
 		txtEndereco.setColumns(10);
 		
 		txtCpf = new JFormattedTextField(criarMask("###.###.###-##"));
 		txtCpf.setEnabled(false);
-		txtCpf.setBounds(257, 111, 310, 22);
+		txtCpf.setBounds(257, 125, 310, 22);
 		panel.add(txtCpf);
 		
 		spinnerIdade = new JSpinner();
 		spinnerIdade.setEnabled(false);
-		spinnerIdade.setBounds(255, 152, 310, 22);
+		spinnerIdade.setBounds(257, 172, 310, 22);
 		panel.add(spinnerIdade);
 		
 		btnInserir = new JButton("Inserir");
@@ -182,7 +204,11 @@ public class Application {
 					contribuinte.setIdade((int) spinnerIdade.getValue()); 
 					contribuinte.setContaBancaria(Integer.parseInt(txtContaBancaria.getText().replaceAll("[.,-]","")));
 					
-					sistema.inserirContribuinte(contribuinte);
+					try {
+						sistema.inserirContribuinte(contribuinte);
+					} catch (Exception e) {
+						infoBox("CPF Já cadastrado", "ERROR");
+					}
 					
 					trocarEstadoCampos(false);
 					btnInserir.setText("Inserir");
@@ -203,6 +229,7 @@ public class Application {
 					trocarEstadoCampos(false);
 					btnInserir.setText("Inserir");
 					btnCancelar.setVisible(false);
+					txtCpf.setEnabled(true);
 					limparCampos();
 				}
 			}
@@ -225,12 +252,12 @@ public class Application {
 		panel.add(btnCancelar);
 		
 		JLabel lblContaBancria = new JLabel("Conta Banc\u00E1ria");
-		lblContaBancria.setBounds(75, 198, 97, 16);
+		lblContaBancria.setBounds(80, 227, 97, 16);
 		panel.add(lblContaBancria);
 		
 		txtContaBancaria = new JFormattedTextField(criarMask("#####-#"));
 		txtContaBancaria.setEnabled(false);
-		txtContaBancaria.setBounds(255, 195, 310, 22);
+		txtContaBancaria.setBounds(257, 224, 310, 22);
 		panel.add(txtContaBancaria);
 		
 		JPanel panel_1 = new JPanel();
@@ -281,25 +308,12 @@ public class Application {
 					txtCpf.setText(contribuinte.getCpf());
 					spinnerIdade.setValue(contribuinte.getIdade());
 					txtContaBancaria.setText(String.valueOf(contribuinte.getContaBancaria()));
+					txtCpf.setEnabled(false);
 				}
 			}
 		});
-		btnModificar.setBounds(180, 277, 97, 25);
+		btnModificar.setBounds(300, 287, 97, 25);
 		panel_1.add(btnModificar);
-		
-		JButton btnDeletar = new JButton("Deletar");
-		btnDeletar.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent arg0) {
-				if(tblContribuintes.getSelectedRow() != -1) {
-					ID = (int) tblContribuintes.getValueAt(tblContribuintes.getSelectedRow(), 0);
-					sistema.deletaContribuinte(ID);
-					carregaTabela();
-				}
-			}
-		});
-		btnDeletar.setBounds(419, 277, 97, 25);
-		panel_1.add(btnDeletar);
 		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(64, 67, 546, 178);
@@ -317,6 +331,186 @@ public class Application {
 		tblContribuintes.setBounds(64, 67, 546, 178);
 		scrollPane.setViewportView(tblContribuintes);
 		
+		JPanel panel_10 = new JPanel();
+		tabbedPane_1.addTab("Consultar", null, panel_10, null);
+		panel_10.setLayout(null);
+		
+		JLabel lblCpf_3 = new JLabel("CPF ");
+		lblCpf_3.setBounds(126, 40, 46, 14);
+		panel_10.add(lblCpf_3);
+		
+		comboCpfConsulta = new JComboBox<String>();
+		comboCpfConsulta.setBounds(182, 37, 298, 20);
+		panel_10.add(comboCpfConsulta);
+		
+		JRadioButton rdbtnContribuinte = new JRadioButton("Contribuinte");
+		buttonGroup3.add(rdbtnContribuinte);
+		rdbtnContribuinte.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+								"CPF", "Nome", "Idade", "Endere\u00E7o", "Conta Banc\u00E1ria"
+						}
+				);
+				
+				tblConsulta.setModel(model);
+			}
+		});
+		rdbtnContribuinte.setBounds(120, 64, 102, 23);
+		panel_10.add(rdbtnContribuinte);
+		
+		JRadioButton rdbtnDependentes = new JRadioButton("Dependentes");
+		buttonGroup3.add(rdbtnDependentes);
+		rdbtnDependentes.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+							"CPF", "Nome", "Idade", "Endere\u00E7o"
+						}
+				);
+				
+				tblConsulta.setModel(model);
+			}
+		});
+		rdbtnDependentes.setBounds(224, 64, 109, 23);
+		panel_10.add(rdbtnDependentes);
+		
+		JScrollPane scrollPane_5 = new JScrollPane();
+		scrollPane_5.setBounds(107, 94, 490, 171);
+		panel_10.add(scrollPane_5);
+		
+		tblConsulta = new JTable();
+		tblConsulta.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+				"CPF", "Nome", "Idade", "Endere\u00E7o", "Conta Banc\u00E1ria"
+			}
+		));
+		scrollPane_5.setViewportView(tblConsulta);
+		
+		txtTotal = new JTextField();
+		txtTotal.setEnabled(true);
+		txtTotal.setEditable(false);
+		txtTotal.setBounds(299, 276, 115, 20);
+		panel_10.add(txtTotal);
+		txtTotal.setColumns(10);
+		
+		JLabel lblTotal = new JLabel("Total:");
+		lblTotal.setBounds(245, 279, 46, 14);
+		panel_10.add(lblTotal);
+		
+		JButton btnConsultar = new JButton("Consultar");
+		btnConsultar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(rdbtnContribuinte.isSelected()) {
+					String cpf = ContribuinteDAO.getInstance().selectAll().get(comboCpfConsulta.getSelectedIndex()).getCpf();
+					ArrayList<Contribuinte> lista = ContribuinteDAO.getInstance().selectCpf(cpf);
+					atualizaTabelaConsultaContribuinte(lista);
+				}
+				else if(rdbtnDependentes.isSelected()) {
+					ID = sistema.getContribuintes().get(comboCpfConsulta.getSelectedIndex()).getId();
+					ArrayList<Dependente> lista = sistema.buscaDependente(ID);
+					atualizaTabelaConsultaDependente(lista);
+				}
+				else if(rdbtnBens.isSelected()) {
+					ID = sistema.getContribuintes().get(comboCpfConsulta.getSelectedIndex()).getId();
+					ArrayList<Bem> lista = sistema.buscaBem(ID);
+					atualizaTabelaConsultaBens(lista);
+					
+					txtTotal.setText(String.valueOf(BemDAO.getInstance().soma(ID)));
+				}
+				else if(rdbtnReceitas.isSelected()) {
+					ID = sistema.getContribuintes().get(comboCpfConsulta.getSelectedIndex()).getId();
+					ArrayList<Contracheque> lista = sistema.buscaContracheque(ID);
+					atualizaTabelaConsultaCheques(lista);
+					
+					try {
+						txtTotal.setText(String.valueOf(ContrachequeDAO.getInstance().soma(ID)));
+					} catch (Exception e1) {
+						infoBox("Nenhum contracheque cadastrado", "ERROR");
+					}
+				}
+				else if(rdbtnDespesas.isSelected()) {
+					ID = sistema.getContribuintes().get(comboCpfConsulta.getSelectedIndex()).getId();
+					ArrayList<NotaFiscal> lista = sistema.buscaNotaFiscal(ID);
+					atualizaTabelaNotaFiscal(lista);
+					
+					try {
+						txtTotal.setText(String.valueOf(NotaFiscalDAO.getInstance().soma(ID)));
+					} catch (Exception e1) {
+						infoBox("Nenhuma nota fiscal cadastrada", "ERROR");
+					}
+				}
+			}
+		});
+		btnConsultar.setBounds(508, 36, 89, 23);
+		panel_10.add(btnConsultar);
+		
+		rdbtnBens = new JRadioButton("Bens");
+		rdbtnBens.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+							"Nome", "Tipo", "Valor"
+						}
+				);
+				
+				tblConsulta.setModel(model);
+			}
+		});
+		buttonGroup3.add(rdbtnBens);
+		rdbtnBens.setBounds(335, 64, 74, 23);
+		panel_10.add(rdbtnBens);
+		
+		rdbtnReceitas = new JRadioButton("Receitas");
+		buttonGroup3.add(rdbtnReceitas);
+		rdbtnReceitas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+							"Num Protocolo", "Valor"
+						}
+				);
+				
+				tblConsulta.setModel(model);
+			}
+		});
+		rdbtnReceitas.setBounds(411, 64, 95, 23);
+		panel_10.add(rdbtnReceitas);
+		
+		rdbtnDespesas = new JRadioButton("Despesas");
+		buttonGroup3.add(rdbtnDespesas);
+		rdbtnDespesas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+							"Num Protocolo", "Valor"
+						}
+				);
+				
+				tblConsulta.setModel(model);
+			}
+		});
+		rdbtnDespesas.setBounds(508, 64, 109, 23);
+		panel_10.add(rdbtnDespesas);
+		
 		JTabbedPane tabbedPane_4 = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.addTab("Dependente", null, tabbedPane_4, null);
 		
@@ -325,7 +519,7 @@ public class Application {
 		panel_6.setLayout(null);
 		
 		JLabel lblNome_1 = new JLabel("Nome");
-		lblNome_1.setBounds(75, 94, 46, 14);
+		lblNome_1.setBounds(81, 94, 46, 14);
 		panel_6.add(lblNome_1);
 		
 		txtNomeDep = new JTextField();
@@ -335,19 +529,19 @@ public class Application {
 		txtNomeDep.setColumns(10);
 		
 		JLabel lblEndereo_2 = new JLabel("Endere\u00E7o");
-		lblEndereo_2.setBounds(75, 136, 46, 14);
+		lblEndereo_2.setBounds(81, 136, 89, 14);
 		panel_6.add(lblEndereo_2);
 		
 		JLabel lblCpf_2 = new JLabel("CPF");
-		lblCpf_2.setBounds(75, 175, 46, 14);
+		lblCpf_2.setBounds(81, 175, 46, 14);
 		panel_6.add(lblCpf_2);
 		
 		JLabel lblIdade_1 = new JLabel("Idade");
-		lblIdade_1.setBounds(75, 215, 46, 14);
+		lblIdade_1.setBounds(81, 215, 46, 14);
 		panel_6.add(lblIdade_1);
 		
 		JLabel lblResponsvel = new JLabel("CPF Contribuinte");
-		lblResponsvel.setBounds(75, 43, 108, 14);
+		lblResponsvel.setBounds(81, 43, 108, 14);
 		panel_6.add(lblResponsvel);
 		
 		txtEndDep = new JTextField();
@@ -385,9 +579,13 @@ public class Application {
 					dependente.setNome(txtNomeDep.getText());
 					dependente.setEndereco(txtEndDep.getText());
 					dependente.setCpf(txtCpfDep.getText().replaceAll("[.,-]",""));
-					dependente.setIdade((int) spinnerIdade.getValue()); 
+					dependente.setIdade((int) spinnerIdadeDep.getValue()); 
 			
-					sistema.inserirDependente(dependente, comboCpfDep.getSelectedIndex());
+					try {
+						sistema.inserirDependente(dependente, sistema.getContribuintes().get(comboCpfDep.getSelectedIndex()).getId());
+					} catch (Exception e) {
+						infoBox("CPF já cadastrado", "ERROR");
+					}
 					
 					trocarEstadoCamposDep(false);
 					btnInserirDep.setText("Inserir");
@@ -395,20 +593,20 @@ public class Application {
 					limparCamposDep();
 				}
 				else {
-					Contribuinte contribuinte = new Contribuinte();
-					contribuinte.setId(ID);
-					contribuinte.setNome(txtNome.getText());
-					contribuinte.setEndereco(txtEndereco.getText());
-					contribuinte.setCpf(txtCpf.getText().replaceAll("[.,-]",""));
-					contribuinte.setIdade((int) spinnerIdade.getValue()); 
-					contribuinte.setContaBancaria(Integer.parseInt(txtContaBancaria.getText().replaceAll("[.,-]","")));
+					Dependente dependente = new Dependente();
+					dependente.setId(ID);
+					dependente.setNome(txtNomeDep.getText());
+					dependente.setEndereco(txtEndDep.getText());
+					dependente.setCpf(txtCpfDep.getText().replaceAll("[.,-]",""));
+					dependente.setIdade((int) spinnerIdadeDep.getValue()); 
 		
-					ContribuinteDAO cDao = ContribuinteDAO.getInstance();
-					cDao.update(contribuinte);
+					sistema.atualizarDependente(dependente);
 					
 					trocarEstadoCamposDep(false);
 					btnInserirDep.setText("Inserir");
 					btnCancelarDep.setVisible(false);
+					comboCpfDep.setEnabled(true);
+					txtCpfDep.setEnabled(true);
 					limparCamposDep();
 				}
 			}
@@ -417,6 +615,16 @@ public class Application {
 		panel_6.add(btnInserirDep);
 		
 		btnCancelarDep = new JButton("Cancelar");
+		btnCancelarDep.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				btnInserirDep.setText("Inserir");
+				btnCancelarDep.setVisible(false);
+				trocarEstadoCamposDep(false);
+				limparCamposDep();
+			}
+		});
+		btnCancelarDep.setVisible(false);
 		btnCancelarDep.setBounds(415, 278, 89, 23);
 		panel_6.add(btnCancelarDep);
 		
@@ -432,12 +640,12 @@ public class Application {
 		btnSelecionarDep.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				System.out.println(comboFiltroDep.getSelectedIndex());
-				ArrayList<Dependente> lista = sistema.getContribuintes().get(comboFiltroDep.getSelectedIndex()).getDependentes();
+				ID = sistema.getContribuintes().get(comboFiltroDep.getSelectedIndex()).getId();
+				ArrayList<Dependente> lista = sistema.buscaDependente(ID);
 				atualizaTabelaDep(lista);
 			}
 		});
-		btnSelecionarDep.setBounds(419, 26, 89, 23);
+		btnSelecionarDep.setBounds(419, 26, 107, 23);
 		panel_7.add(btnSelecionarDep);
 		
 		JScrollPane scrollPane_2 = new JScrollPane();
@@ -455,12 +663,47 @@ public class Application {
 		scrollPane_2.setViewportView(tblDep);
 		
 		JButton btnModificarDep = new JButton("Modificar");
+		btnModificarDep.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(tblDep.getSelectedRow() != -1) {
+					Dependente dependente = new Dependente();
+					dependente.setId((int) tblDep.getValueAt(tblDep.getSelectedRow(), 0));
+					dependente.setNome((String) tblDep.getValueAt(tblDep.getSelectedRow(), 1));
+					dependente.setEndereco((String) tblDep.getValueAt(tblDep.getSelectedRow(), 2));
+					dependente.setCpf((String) tblDep.getValueAt(tblDep.getSelectedRow(), 3));
+					dependente.setIdade((int) tblDep.getValueAt(tblDep.getSelectedRow(), 4));
+					ID = dependente.getId();
+					
+					tabbedPane_4.setSelectedIndex(0);
+					trocarEstadoCamposDep(true);
+					btnInserirDep.setText("Atualizar");
+					btnCancelarDep.setVisible(true);
+					comboCpfDep.setEnabled(false);
+					
+					txtNomeDep.setText(dependente.getNome());
+					txtEndDep.setText(dependente.getEndereco());
+					txtCpfDep.setText(dependente.getCpf());
+					spinnerIdadeDep.setValue(dependente.getIdade());
+					txtCpfDep.setEnabled(false);
+				}
+			}
+		});
 		btnModificarDep.setBounds(180, 277, 89, 23);
 		panel_7.add(btnModificarDep);
 		
 		JButton btnDeletarDep = new JButton("Deletar");
-		btnDeletarDep.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
+		btnDeletarDep.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(tblDep.getSelectedRow() != -1) {
+					System.out.println((int) tblDep.getValueAt(tblDep.getSelectedRow(), 0));
+					ID = (int) tblDep.getValueAt(tblDep.getSelectedRow(), 0);
+					sistema.deletarDependente(ID);
+					ID = sistema.getContribuintes().get(comboFiltroDep.getSelectedIndex()).getId();
+					ArrayList<Dependente> lista = sistema.buscaDependente(ID);
+					atualizaTabelaDep(lista);
+				}
 			}
 		});
 		btnDeletarDep.setBounds(419, 277, 89, 23);
@@ -537,7 +780,11 @@ public class Application {
 					pj.setCnpj(txtCnpj.getText().replaceAll("[.,-/]",""));
 					pj.setNumFuncionarios((int) spinnerNumFunc.getValue());
 		
-					sistema.inserirPessoaJuridica(pj);
+					try {
+						sistema.inserirPessoaJuridica(pj);
+					} catch (Exception e) {
+						infoBox("CNPJ já cadastrado", "ERROR");
+					}
 					
 					trocarEstadoCamposPJ(false);
 					btnInserirPJ.setText("Inserir");
@@ -557,6 +804,7 @@ public class Application {
 					trocarEstadoCamposPJ(false);
 					btnInserirPJ.setText("Inserir");
 					btnCancelarPJ.setVisible(false);
+					txtCnpj.setEnabled(true);
 					limparCamposPJ();
 				}
 			}
@@ -639,7 +887,8 @@ public class Application {
 					txtCnpj.setText(pj.getCnpj());
 					txtNomePJ.setText(pj.getNomePJ());
 					txtEnderecoPJ.setText(pj.getEndereco());
-					spinnerNumFunc.setValue(pj.getNumFuncionarios());;
+					spinnerNumFunc.setValue(pj.getNumFuncionarios());
+					txtCnpj.setEnabled(false);
 				}
 			}
 		});
@@ -660,8 +909,146 @@ public class Application {
 		btnDeletarPJ.setBounds(419, 277, 97, 25);
 		panel_5.add(btnDeletarPJ);
 		
+		JPanel panel_11 = new JPanel();
+		tabbedPane_3.addTab("Consultar", null, panel_11, null);
+		panel_11.setLayout(null);
+		
+		JLabel lblCnpj_2 = new JLabel("CNPJ");
+		lblCnpj_2.setBounds(111, 48, 46, 14);
+		panel_11.add(lblCnpj_2);
+		
+		comboCnpjConsulta = new JComboBox<String>();
+		comboCnpjConsulta.setBounds(167, 45, 298, 20);
+		panel_11.add(comboCnpjConsulta);
+		
+		rdbtnPessoaJuridica = new JRadioButton("Pessoa Juridica");
+		buttonGroup4.add(rdbtnPessoaJuridica);
+		rdbtnPessoaJuridica.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+								"Nome", "Endere\u00E7o", "Num Funcion\u00E1rios"
+						}
+				);
+				
+				tblConsultaCnpj.setModel(model);
+			}
+		});
+		rdbtnPessoaJuridica.setBounds(121, 72, 138, 23);
+		panel_11.add(rdbtnPessoaJuridica);
+		
+		JScrollPane scrollPane_6 = new JScrollPane();
+		scrollPane_6.setBounds(92, 102, 490, 171);
+		panel_11.add(scrollPane_6);
+		
+		tblConsultaCnpj = new JTable();
+		tblConsultaCnpj.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+				"Nome", "Endere\u00E7o", "Num Funcion\u00E1rios"
+			}
+		));
+		tblConsultaCnpj.getColumnModel().getColumn(2).setPreferredWidth(96);
+		scrollPane_6.setViewportView(tblConsultaCnpj);
+		
+		txtTotalCnpj = new JTextField();
+		txtTotalCnpj.setEnabled(true);
+		txtTotalCnpj.setEditable(false);
+		txtTotalCnpj.setColumns(10);
+		txtTotalCnpj.setBounds(284, 284, 115, 20);
+		panel_11.add(txtTotalCnpj);
+		
+		JLabel label_1 = new JLabel("Total:");
+		label_1.setBounds(230, 287, 46, 14);
+		panel_11.add(label_1);
+		
+		JButton btnConsultaCnpj = new JButton("Consultar");
+		btnConsultaCnpj.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(rdbtnPessoaJuridica.isSelected()) {
+					String cnpj = sistema.getPjs().get(comboCnpjConsulta.getSelectedIndex()).getCnpj();
+					ArrayList<PessoaJuridica> pjs = PessoaJuridicaDAO.getInstance().selectCnpj(cnpj);
+					atualizaTabelaConsultaCnpj(pjs);
+				}
+				else if(rdbtnContracheques.isSelected()) {
+					ID = sistema.getPjs().get(comboCnpjConsulta.getSelectedIndex()).getId();
+					ArrayList<Contracheque> lista = sistema.buscaContrachequePJ(ID);
+					atualizaTabelaConsultaContracheque(lista);
+					
+					try {
+						txtTotalCnpj.setText(String.valueOf(ContrachequeDAO.getInstance().somaPj(ID)));
+					} catch (Exception e) {
+						infoBox("Nenhum contracheque cadastrado", "ERROR");
+					}
+				}
+				else if(rdbtnNotasFiscais.isSelected()) {
+					ID = sistema.getPjs().get(comboCnpjConsulta.getSelectedIndex()).getId();
+					ArrayList<NotaFiscal> lista = sistema.buscaNotaFiscalPj(ID);
+					atualizaTabelaConsultaNotaFiscal(lista);
+					
+					try {
+						txtTotalCnpj.setText(String.valueOf(NotaFiscalDAO.getInstance().somaPj(ID)));
+					} catch (Exception e) {
+						infoBox("Nenhuma nota fiscal cadastrada", "ERROR");
+					}
+				}
+			}
+			
+		});
+		btnConsultaCnpj.setBounds(493, 44, 89, 23);
+		panel_11.add(btnConsultaCnpj);
+		
+		rdbtnContracheques = new JRadioButton("Contracheques");
+		buttonGroup4.add(rdbtnContracheques);
+		rdbtnContracheques.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+								"Num Protocolo", "Valor"
+						}
+				);
+				
+				tblConsultaCnpj.setModel(model);
+			}
+		});
+		rdbtnContracheques.setBounds(276, 72, 138, 23);
+		panel_11.add(rdbtnContracheques);
+		
+		rdbtnNotasFiscais = new JRadioButton("Notas Fiscais");
+		buttonGroup4.add(rdbtnNotasFiscais);
+		rdbtnNotasFiscais.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				TableModel model = new DefaultTableModel(
+						new Object[][] {
+						},
+						new String[] {
+								"Num Protocolo", "Valor"
+						}
+				);
+				
+				tblConsultaCnpj.setModel(model);
+			}
+		});
+		rdbtnNotasFiscais.setBounds(429, 72, 109, 23);
+		panel_11.add(rdbtnNotasFiscais);
+		
 		
 		JTabbedPane tabbedPane_2 = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane_2.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				if(tabbedPane_2.getSelectedIndex() == 1)
+					limpaTabela(tblDocs);
+			}
+		});
 		tabbedPane.addTab("Documentos", null, tabbedPane_2, null);
 		
 		JPanel panel_2 = new JPanel();
@@ -731,7 +1118,7 @@ public class Application {
 						int id1 = comboCpf.getSelectedIndex();
 						int id2 = comboCnpj.getSelectedIndex();
 						
-						sistema.insereDocumento(nota, id1, id2);
+						sistema.insereNotaFiscal(nota, id1, id2);
 						
 						trocarEstadoCamposDoc(false);
 						btnInserirDocumento.setText("Inserir");
@@ -745,7 +1132,7 @@ public class Application {
 						int id1 = comboCpf.getSelectedIndex();
 						int id2 = comboCnpj.getSelectedIndex();
 						
-						sistema.insereDocumento(cheque, id1, id2);
+						sistema.insereContracheque(cheque, id1, id2);
 						
 						trocarEstadoCamposDoc(false);
 						btnInserirDocumento.setText("Inserir");
@@ -753,29 +1140,23 @@ public class Application {
 						limparCamposDoc();
 					}
 				}
-				else {
-					Contribuinte contribuinte = new Contribuinte();
-					contribuinte.setId(ID);
-					contribuinte.setNome(txtNome.getText());
-					contribuinte.setEndereco(txtEndereco.getText());
-					contribuinte.setCpf(txtCpf.getText().replaceAll("[.,-]",""));
-					contribuinte.setIdade((int) spinnerIdade.getValue()); 
-					contribuinte.setContaBancaria(Integer.parseInt(txtContaBancaria.getText().replaceAll("[.,-]","")));
-		
-					ContribuinteDAO cDao = ContribuinteDAO.getInstance();
-					cDao.update(contribuinte);
-					
-					trocarEstadoCamposDoc(false);
-					btnInserirDocumento.setText("Inserir");
-					btnCancelarDocumento.setVisible(false);
-					limparCamposDoc();
-				}
 			}
 		});
 		btnInserirDocumento.setBounds(246, 226, 97, 25);
 		panel_2.add(btnInserirDocumento);
 		
 		btnCancelarDocumento = new JButton("Cancelar");
+		btnCancelarDocumento.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				btnInserirDocumento.setText("Inserir");
+				btnCancelarDocumento.setVisible(false);
+				rdbtnNota.setSelected(false);
+				rdbtnContracheque.setSelected(false);
+				trocarEstadoCamposDoc(false);
+				limparCamposDoc();
+			}
+		});
 		btnCancelarDocumento.setBounds(475, 226, 97, 25);
 		panel_2.add(btnCancelarDocumento);
 		
@@ -784,7 +1165,7 @@ public class Application {
 		panel_3.setLayout(null);
 		
 		JLabel lblCpfContribuinte_1 = new JLabel("CPF Contribuinte");
-		lblCpfContribuinte_1.setBounds(112, 31, 89, 14);
+		lblCpfContribuinte_1.setBounds(100, 31, 107, 14);
 		panel_3.add(lblCpfContribuinte_1);
 		
 		comboFiltroCpfDoc = new JComboBox<String>();
@@ -792,11 +1173,13 @@ public class Application {
 		panel_3.add(comboFiltroCpfDoc);
 		
 		JRadioButton rdbtnNotaFiscalFiltro = new JRadioButton("Nota Fiscal");
-		rdbtnNotaFiscalFiltro.setBounds(562, 7, 109, 23);
+		buttonGroup2.add(rdbtnNotaFiscalFiltro);
+		rdbtnNotaFiscalFiltro.setBounds(583, 7, 109, 23);
 		panel_3.add(rdbtnNotaFiscalFiltro);
 		
 		JRadioButton rdbtnContrachequeFiltro = new JRadioButton("Contracheque");
-		rdbtnContrachequeFiltro.setBounds(562, 31, 109, 23);
+		buttonGroup2.add(rdbtnContrachequeFiltro);
+		rdbtnContrachequeFiltro.setBounds(583, 31, 109, 23);
 		panel_3.add(rdbtnContrachequeFiltro);
 		
 		JScrollPane scrollPane_3 = new JScrollPane();
@@ -813,37 +1196,49 @@ public class Application {
 		));
 		scrollPane_3.setViewportView(tblDocs);
 		
-		JButton btnModificarDoc = new JButton("Modificar");
-		btnModificarDoc.setBounds(174, 293, 89, 23);
-		panel_3.add(btnModificarDoc);
-		
 		JButton btnDeletarDoc = new JButton("Deletar");
-		btnDeletarDoc.setBounds(415, 293, 89, 23);
+		btnDeletarDoc.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(tblDocs.getSelectedRow() != -1) {
+					if(rdbtnNotaFiscalFiltro.isSelected()) {
+						ID = (int) tblDocs.getValueAt(tblDocs.getSelectedRow(), 0);
+						sistema.deletaNotaFiscal(ID);
+						ID = sistema.getContribuintes().get(comboFiltroCpfDoc.getSelectedIndex()).getId();
+						ArrayList<NotaFiscal> lista = sistema.buscaNotaFiscal(ID);
+						atualizaTabelaNotas(lista);
+					}
+					else if (rdbtnContrachequeFiltro.isSelected()) {
+						ID = (int) tblDocs.getValueAt(tblDocs.getSelectedRow(), 0);
+						sistema.deletaContracheque(ID);
+						ID = sistema.getContribuintes().get(comboFiltroCpfDoc.getSelectedIndex()).getId();
+						ArrayList<Contracheque> lista = sistema.buscaContracheque(ID);
+						atualizaTabelaCheques(lista);
+					}
+				}
+			}
+		});
+		btnDeletarDoc.setBounds(304, 288, 89, 23);
 		panel_3.add(btnDeletarDoc);
 		
 		JButton btnSelecionarDoc = new JButton("Selecionar");
 		btnSelecionarDoc.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
+				limpaTabela(tblDocs);
 				if(rdbtnNotaFiscalFiltro.isSelected()) {
-					ArrayList<NotaFiscal> lista = new ArrayList<NotaFiscal>();
-					for(Documento doc : sistema.getContribuintes().get(comboFiltroCpfDoc.getSelectedIndex()).getDocumentos()) {
-						if(doc instanceof NotaFiscal)
-							lista.add((NotaFiscal) doc);
-					}
+					ID = sistema.getContribuintes().get(comboFiltroCpfDoc.getSelectedIndex()).getId();
+					ArrayList<NotaFiscal> lista = sistema.buscaNotaFiscal(ID);
 					atualizaTabelaNotas(lista);
 				}
 				else if(rdbtnContrachequeFiltro.isSelected()) {
-					ArrayList<Contracheque> lista = new ArrayList<Contracheque>();
-					for(Documento doc : sistema.getContribuintes().get(comboFiltroCpfDoc.getSelectedIndex()).getDocumentos()) {
-						if(doc instanceof Contracheque)
-							lista.add((Contracheque) doc);
-					}
+					ID = sistema.getContribuintes().get(comboFiltroCpfDoc.getSelectedIndex()).getId();
+					ArrayList<Contracheque> lista = sistema.buscaContracheque(ID);
 					atualizaTabelaCheques(lista);
 				}	
 			}
 		});
-		btnSelecionarDoc.setBounds(462, 27, 89, 23);
+		btnSelecionarDoc.setBounds(462, 27, 115, 23);
 		panel_3.add(btnSelecionarDoc);
 		
 		JTabbedPane tabbedPane_5 = new JTabbedPane(JTabbedPane.TOP);
@@ -851,9 +1246,140 @@ public class Application {
 		
 		JPanel panel_8 = new JPanel();
 		tabbedPane_5.addTab("Cadastrar", null, panel_8, null);
+		panel_8.setLayout(null);
+		
+		JLabel lblCpfContribuinte_2 = new JLabel("CPF Contribuinte");
+		lblCpfContribuinte_2.setBounds(115, 43, 133, 14);
+		panel_8.add(lblCpfContribuinte_2);
+		
+		JLabel lblNome_2 = new JLabel("Nome");
+		lblNome_2.setBounds(115, 94, 46, 14);
+		panel_8.add(lblNome_2);
+		
+		JLabel lblTipo = new JLabel("Tipo");
+		lblTipo.setBounds(115, 152, 46, 14);
+		panel_8.add(lblTipo);
+		
+		JLabel lblValor_1 = new JLabel("Valor");
+		lblValor_1.setBounds(115, 212, 46, 14);
+		panel_8.add(lblValor_1);
+		
+		comboCpfBens = new JComboBox<String>();
+		comboCpfBens.setEnabled(false);
+		comboCpfBens.setBounds(258, 40, 310, 20);
+		panel_8.add(comboCpfBens);
+		
+		txtNomeBem = new JTextField();
+		txtNomeBem.setEnabled(false);
+		txtNomeBem.setBounds(258, 91, 310, 20);
+		panel_8.add(txtNomeBem);
+		txtNomeBem.setColumns(10);
+		
+		txtTipoBem = new JTextField();
+		txtTipoBem.setEnabled(false);
+		txtTipoBem.setBounds(258, 149, 310, 20);
+		panel_8.add(txtTipoBem);
+		txtTipoBem.setColumns(10);
+		
+		spinnerValorBem = new JSpinner();
+		spinnerValorBem.setEnabled(false);
+		spinnerValorBem.setBounds(258, 209, 310, 20);
+		panel_8.add(spinnerValorBem);
+		
+		JButton btnInserirBem = new JButton("Inserir");
+		btnInserirBem.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(btnInserirBem.getText().toLowerCase().equals("inserir")) {
+					trocarEstadoCamposBem(true);
+					btnInserirBem.setText("Salvar");
+					btnCancelarBem.setVisible(true);
+				}
+				else if(btnInserirBem.getText().toLowerCase().equals("salvar")){
+					Bem bem = new Bem();
+					bem.setNome(txtNomeBem.getText());
+					bem.setTipo(txtTipoBem.getText());
+					bem.setValor((float) ((int) spinnerValorBem.getValue())); 
+			
+					sistema.inserirBem(bem, sistema.getContribuintes().get(comboCpfBens.getSelectedIndex()).getId());
+					
+					trocarEstadoCamposBem(false);
+					btnInserirBem.setText("Inserir");
+					btnCancelarBem.setVisible(false);
+					limparCamposBem();
+				}
+			}
+		});
+		btnInserirBem.setBounds(170, 278, 89, 23);
+		panel_8.add(btnInserirBem);
+		
+		btnCancelarBem = new JButton("Cancelar");
+		btnCancelarBem.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				btnInserirBem.setText("Inserir");
+				btnInserirBem.setVisible(false);
+				trocarEstadoCamposBem(false);
+				limparCamposBem();
+			}
+		});
+		btnCancelarBem.setVisible(false);
+		btnCancelarBem.setBounds(415, 278, 89, 23);
+		panel_8.add(btnCancelarBem);
 		
 		JPanel panel_9 = new JPanel();
 		tabbedPane_5.addTab("Modificar", null, panel_9, null);
+		panel_9.setLayout(null);
+		
+		JLabel lblCpfContribuinte_3 = new JLabel("CPF Contribuinte");
+		lblCpfContribuinte_3.setBounds(97, 30, 125, 14);
+		panel_9.add(lblCpfContribuinte_3);
+		
+		comboFiltroCpfBem = new JComboBox<String>();
+		comboFiltroCpfBem.setBounds(232, 26, 214, 22);
+		panel_9.add(comboFiltroCpfBem);
+		
+		JButton btnSelecionarBem = new JButton("Selecionar");
+		btnSelecionarBem.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				ID = sistema.getContribuintes().get(comboFiltroCpfBem.getSelectedIndex()).getId();
+				ArrayList<Bem> lista = sistema.buscaBem(ID);
+				atualizaTabelaBens(lista);
+			}
+		});
+		btnSelecionarBem.setBounds(456, 26, 104, 23);
+		panel_9.add(btnSelecionarBem);
+		
+		JScrollPane scrollPane_4 = new JScrollPane();
+		scrollPane_4.setBounds(64, 67, 546, 178);
+		panel_9.add(scrollPane_4);
+		
+		tblBens = new JTable();
+		tblBens.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+				"ID", "Nome", "Tipo", "Valor"
+			}
+		));
+		scrollPane_4.setViewportView(tblBens);
+		
+		JButton btnDeletarBem = new JButton("Deletar");
+		btnDeletarBem.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(tblBens.getSelectedRow() != -1) {
+					ID = (int) tblBens.getValueAt(tblBens.getSelectedRow(), 0);
+					sistema.deletarBem(ID);
+					ID = sistema.getContribuintes().get(comboFiltroCpfBem.getSelectedIndex()).getId();
+					ArrayList<Bem> lista = sistema.buscaBem(ID);
+					atualizaTabelaBens(lista);
+				}
+			}
+		});
+		btnDeletarBem.setBounds(295, 280, 89, 23);
+		panel_9.add(btnDeletarBem);
 		
 		tabbedPane_2.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
@@ -873,6 +1399,16 @@ public class Application {
 				}
 			}
 		});
+		tabbedPane_1.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				limpaCombo();
+				if(tabbedPane_1.getSelectedIndex() == 2) {;
+					for (Contribuinte contr : sistema.getContribuintes()) {
+						comboCpfConsulta.addItem(contr.getCpf());
+					}
+				}
+			}
+		});
 		tabbedPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				limpaCombo();
@@ -881,9 +1417,13 @@ public class Application {
 					comboCpfDep.addItem(contr.getCpf());
 					comboFiltroDep.addItem(contr.getCpf());
 					comboFiltroCpfDoc.addItem(contr.getCpf());
+					comboFiltroCpfBem.addItem(contr.getCpf());
+					comboCpfBens.addItem(contr.getCpf());
+					comboCpfConsulta.addItem(contr.getCpf());
 				}
 				for (PessoaJuridica pj : sistema.getPjs()) {
 					comboCnpj.addItem(pj.getCnpj());
+					comboCnpjConsulta.addItem(pj.getCnpj());
 				}
 			}
 		});
@@ -902,26 +1442,55 @@ public class Application {
 				}
 			}
 		});
+		tabbedPane_5.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				limpaCombo();
+				if(tabbedPane_5.getSelectedIndex() == 0) {
+					for (Contribuinte contr : sistema.getContribuintes()) {
+						comboCpfBens.addItem(contr.getCpf());
+					}
+				}
+				if(tabbedPane_5.getSelectedIndex() == 1) {
+					for (Contribuinte contr : sistema.getContribuintes()) {
+						comboFiltroCpfBem.addItem(contr.getCpf());
+					}
+				}
+			}
+		});
+		tabbedPane_3.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				limpaCombo();
+				if(tabbedPane_3.getSelectedIndex() == 2) {
+					for (PessoaJuridica pj : sistema.getPjs()) {
+						comboCnpjConsulta.addItem(pj.getCnpj());
+					}
+				}
+			}
+		});
 		
 		
 	}
 	
-	private void limpaCombo() {
+	public void limpaCombo() {
 		comboCnpj.removeAllItems();
 		comboCpf.removeAllItems();
 		comboCpfDep.removeAllItems();
 		comboFiltroCpfDoc.removeAllItems();
 		comboFiltroDep.removeAllItems();
+		comboFiltroCpfBem.removeAllItems();
+		comboCpfBens.removeAllItems();
+		comboCpfConsulta.removeAllItems();
+		comboCnpjConsulta.removeAllItems();
 	}
 	
-	private void limpaTabela(JTable table) {
+	public void limpaTabela(JTable table) {
 		DefaultTableModel dtm = (DefaultTableModel) table.getModel();
         while (dtm.getRowCount() > 0) {
             dtm.removeRow(0);
         }
 	}
 	
-	private void carregaTabela() {
+	public void carregaTabela() {
 		limpaTabela(tblContribuintes);
 		txtFiltro.setText("");
 		
@@ -946,7 +1515,7 @@ public class Application {
 		
 	}
 	
-	private void carregaTabelaPJ() {
+	public void carregaTabelaPJ() {
 		limpaTabela(tblPJ);
 		txtFiltro.setText("");
 		
@@ -970,7 +1539,7 @@ public class Application {
 		
 	}
 	
-	private void atualizaTabela(ArrayList<Contribuinte> contribuintes) {
+	public void atualizaTabela(ArrayList<Contribuinte> contribuintes) {
 		limpaTabela(tblContribuintes);
 		String linha[] = new String[] {"", "", "", "", "", ""};
 		try {
@@ -992,7 +1561,7 @@ public class Application {
 		}
 	}
 	
-	private void atualizaTabelaDep(ArrayList<Dependente> dependentes) {
+	public void atualizaTabelaDep(ArrayList<Dependente> dependentes) {
 		limpaTabela(tblDep);
 		String linha[] = new String[] {"", "", "", "", ""};
 		try {
@@ -1013,7 +1582,7 @@ public class Application {
 		}
 	}
 	
-	private void atualizaTabelaNotas(ArrayList<NotaFiscal> documentos) {
+	public void atualizaTabelaNotas(ArrayList<NotaFiscal> documentos) {
 		limpaTabela(tblDocs);
 		String linha[] = new String[] {"", "", ""};
 		try {
@@ -1032,7 +1601,7 @@ public class Application {
 		}
 	}
 	
-	private void atualizaTabelaCheques(ArrayList<Contracheque> documentos) {
+	public void atualizaTabelaCheques(ArrayList<Contracheque> documentos) {
 		limpaTabela(tblDocs);
 		String linha[] = new String[] {"", "", ""};
 		try {
@@ -1051,7 +1620,7 @@ public class Application {
 		}
 	}
 	
-	private void atualizaTabelaPJ(ArrayList<PessoaJuridica> pjs) {
+	public void atualizaTabelaPJ(ArrayList<PessoaJuridica> pjs) {
 		limpaTabela(tblPJ);
 		String linha[] = new String[] {"", "", "", "", ""};
 		try {
@@ -1072,7 +1641,179 @@ public class Application {
 		}
 	}
 	
-	private void trocarEstadoCampos(boolean estado) {
+	public void atualizaTabelaBens(ArrayList<Bem> bens) {
+		limpaTabela(tblBens);
+		String linha[] = new String[] {"", "", ""};
+		try {
+			DefaultTableModel dadosBens = (DefaultTableModel) tblBens.getModel();
+			
+			int pos = -1;
+			for(Bem bem : bens) {
+				pos++;
+				dadosBens.addRow(linha);
+				dadosBens.setValueAt(bem.getId(), pos, 0);
+				dadosBens.setValueAt(bem.getNome(), pos, 1);
+				dadosBens.setValueAt(bem.getTipo(), pos, 2);
+				dadosBens.setValueAt(bem.getValor(), pos, 3);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaConsultaContribuinte(ArrayList<Contribuinte> contribuintes) {
+		limpaTabela(tblConsulta);
+		String linha[] = new String[] {"", "", "", "", ""};
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsulta.getModel();
+			
+			int pos = -1;
+			for(Contribuinte contribuinte : contribuintes) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(contribuinte.getNome(), pos, 1);
+				dadosConsulta.setValueAt(contribuinte.getEndereco(), pos, 3);
+				dadosConsulta.setValueAt(contribuinte.getCpf(), pos, 0);
+				dadosConsulta.setValueAt(contribuinte.getIdade(), pos, 2);
+				dadosConsulta.setValueAt(contribuinte.getContaBancaria(), pos, 4);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaConsultaDependente(ArrayList<Dependente> dependentes) {
+		limpaTabela(tblConsulta);
+		String linha[] = new String[] {"", "", "", ""};
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsulta.getModel();
+			
+			int pos = -1;
+			for(Dependente dependente : dependentes) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(dependente.getNome(), pos, 1);
+				dadosConsulta.setValueAt(dependente.getEndereco(), pos, 3);
+				dadosConsulta.setValueAt(dependente.getCpf(), pos, 0);
+				dadosConsulta.setValueAt(dependente.getIdade(), pos, 2);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaConsultaBens(ArrayList<Bem> bens) {
+		limpaTabela(tblConsulta);
+		String linha[] = new String[] {"", "", ""};
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsulta.getModel();
+			
+			int pos = -1;
+			for(Bem bem : bens) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(bem.getNome(), pos, 0);
+				dadosConsulta.setValueAt(bem.getTipo(), pos, 1);
+				dadosConsulta.setValueAt(bem.getValor(), pos, 2);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaConsultaCheques(ArrayList<Contracheque> cheques) {
+		limpaTabela(tblConsulta);
+		String linha[] = new String[] {"", "", ""};
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsulta.getModel();
+			
+			int pos = -1;
+			for(Contracheque cheque : cheques) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(cheque.getNumProtocolo(), pos, 0);
+				dadosConsulta.setValueAt(cheque.getValor(), pos, 1);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaNotaFiscal(ArrayList<NotaFiscal> notas) {
+		limpaTabela(tblConsulta);
+		String linha[] = new String[] {"", "", ""};
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsulta.getModel();
+			
+			int pos = -1;
+			for(NotaFiscal nota : notas) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(nota.getNumProtocolo(), pos, 0);
+				dadosConsulta.setValueAt(nota.getValor(), pos, 1);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaConsultaCnpj(ArrayList<PessoaJuridica> pjs) {
+		limpaTabela(tblConsultaCnpj);
+		String linha[] = new String[] {"", "", ""};
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsultaCnpj.getModel();
+			
+			int pos = -1;
+			for(PessoaJuridica pj : pjs) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(pj.getNomePJ(), pos, 0);
+				dadosConsulta.setValueAt(pj.getEndereco(), pos, 1);
+				dadosConsulta.setValueAt(pj.getNumFuncionarios(), pos, 2);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaConsultaContracheque(ArrayList<Contracheque> cheques) {
+		limpaTabela(tblConsultaCnpj);
+		String linha[] = new String[] {"", ""};
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsultaCnpj.getModel();
+			
+			int pos = -1;
+			for(Contracheque cheque : cheques) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(cheque.getNumProtocolo(), pos, 0);
+				dadosConsulta.setValueAt(cheque.getValor(), pos, 1);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void atualizaTabelaConsultaNotaFiscal(ArrayList<NotaFiscal> notas) {
+		limpaTabela(tblConsultaCnpj);
+		String linha[] = new String[] {"", ""};
+		
+		try {
+			DefaultTableModel dadosConsulta = (DefaultTableModel) tblConsultaCnpj.getModel();
+			
+			int pos = -1;
+			for(NotaFiscal nota : notas) {
+				pos++;
+				dadosConsulta.addRow(linha);
+				dadosConsulta.setValueAt(nota.getNumProtocolo(), pos, 0);
+				dadosConsulta.setValueAt(nota.getValor(), pos, 1);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocorreu um erros: " + e.getMessage(), "Erro:", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void trocarEstadoCampos(boolean estado) {
 		txtNome.setEnabled(estado);
 		txtEndereco.setEnabled(estado);
 		txtCpf.setEnabled(estado);
@@ -1080,7 +1821,7 @@ public class Application {
 		txtContaBancaria.setEnabled(estado);
 	}
 	
-	private void limparCampos() {
+	public void limparCampos() {
 		txtNome.setText("");
 		txtEndereco.setText("");
 		txtCpf.setText("");
@@ -1088,7 +1829,7 @@ public class Application {
 		txtContaBancaria.setText("");
 	}
 	
-	private void trocarEstadoCamposDep(boolean estado) {
+	public void trocarEstadoCamposDep(boolean estado) {
 		comboCpfDep.setEnabled(estado);
 		txtNomeDep.setEnabled(estado);
 		txtEndDep.setEnabled(estado);
@@ -1096,7 +1837,7 @@ public class Application {
 		spinnerIdadeDep.setEnabled(estado);
 	}
 	
-	private void limparCamposDep() {
+	public void limparCamposDep() {
 		comboCpfDep.setSelectedIndex(0);
 		txtNomeDep.setText("");
 		txtEndDep.setText("");
@@ -1104,35 +1845,50 @@ public class Application {
 		spinnerIdadeDep.setValue(0);
 	}
 	
-	private void trocarEstadoCamposDoc(boolean estado) {
+	public void trocarEstadoCamposDoc(boolean estado) {
 		txtNumProt.setEnabled(estado);
 		spinnerValor.setEnabled(estado);
 		comboCpf.setEnabled(estado);
 		comboCnpj.setEnabled(estado);
 	}
 	
-	private void limparCamposDoc() {
+	public void limparCamposDoc() {
 		txtNumProt.setText("");
 		spinnerValor.setValue(0);
 		comboCpf.setSelectedIndex(0);
 		comboCnpj.setSelectedIndex(0);
 	}
 	
-	private void trocarEstadoCamposPJ(boolean estado) {
+	public void trocarEstadoCamposPJ(boolean estado) {
 		txtNomePJ.setEnabled(estado);
 		txtEnderecoPJ.setEnabled(estado);
 		txtCnpj.setEnabled(estado);
 		spinnerNumFunc.setEnabled(estado);
 	}
 	
-	private void limparCamposPJ() {
+	public void limparCamposPJ() {
 		txtNomePJ.setText("");
 		txtEnderecoPJ.setText("");
 		txtCnpj.setText("");
 		spinnerNumFunc.setValue(0);
 	}
+	
+	public void trocarEstadoCamposBem(boolean estado) {
+		comboCpfBens.setEnabled(estado);
+		txtNomeBem.setEnabled(estado);
+		txtTipoBem.setEnabled(estado);
+		spinnerValorBem.setEnabled(estado);
+	}
+	
+	public void limparCamposBem() {
+		comboCpfBens.setSelectedIndex(0);
+		txtNomeBem.setText("");
+		txtTipoBem.setText("");
+		spinnerValorBem.setValue(0);
+	}
 
-	private MaskFormatter criarMask(String string) {
+
+	public MaskFormatter criarMask(String string) {
 		MaskFormatter mf = null;
 		try {
 			mf = new MaskFormatter(string);
@@ -1142,4 +1898,9 @@ public class Application {
 		
 		return mf;
 	}
+	
+	public void infoBox(String infoMessage, String titleBar)
+    {
+        JOptionPane.showMessageDialog(null, infoMessage, "InfoBox: " + titleBar, JOptionPane.INFORMATION_MESSAGE);
+    }
 }

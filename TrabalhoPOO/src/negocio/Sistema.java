@@ -3,6 +3,7 @@ package negocio;
 import java.util.ArrayList;
 
 import dados.*;
+import persistencia.BemDAO;
 import persistencia.ContrachequeDAO;
 import persistencia.ContribuinteDAO;
 import persistencia.DependenteDAO;
@@ -18,6 +19,7 @@ public class Sistema {
 	private NotaFiscalDAO nfDao;
 	private ContrachequeDAO chDao;
 	private ContribuinteDAO cDao;
+	private BemDAO bDao;
 	
 	public Sistema() {
 		contribuintes = ContribuinteDAO.getInstance().selectAll();
@@ -37,26 +39,46 @@ public class Sistema {
 		this.pjs = pjs;
 	}
 	
-	public void insereDocumento(Documento documento, int contribuinte, int pj) {
-		
-		if(documento instanceof NotaFiscal ) {
-			nfDao = NotaFiscalDAO.getInstance();
-			nfDao.insert((NotaFiscal) documento, contribuintes.get(contribuinte).getId(), pjs.get(pj).getId());
-		}
-		else {
-			chDao = ContrachequeDAO.getInstance();
-			chDao.insert((Contracheque) documento, contribuintes.get(contribuinte).getId(), pjs.get(pj).getId());
-		}
-		
-		contribuintes.get(contribuinte).getDocumentos().add(documento);
-		pjs.get(pj).getDocumentos().add(documento);
+	public void insereNotaFiscal(NotaFiscal nota, int contribuinte, int pj) {
+		nfDao = NotaFiscalDAO.getInstance();
+		nfDao.insert(nota, contribuintes.get(contribuinte).getId(), pjs.get(pj).getId());
 	}
 	
-	public void inserirContribuinte(Contribuinte contribuinte) {
-		cDao = ContribuinteDAO.getInstance();
+	public void insereContracheque(Contracheque cheque, int contribuinte, int pj) {
+		chDao = ContrachequeDAO.getInstance();
+		chDao.insert(cheque, contribuintes.get(contribuinte).getId(), pjs.get(pj).getId());
+	}
+	
+	public void deletaNotaFiscal(int ID) {
+		NotaFiscalDAO.getInstance().delete(ID);
+	}
+	
+	public void deletaContracheque(int ID) {
+		ContrachequeDAO.getInstance().delete(ID);
+	}
+	
+	public void inserirContribuinte(Contribuinte contribuinte) throws Exception {
+		
+		if(ContribuinteDAO.getInstance().selectAll().isEmpty())
+			ContribuinteDAO.getInstance().restart();
+		
+		cDao = ContribuinteDAO.getInstance();		
+		
+		for(Contribuinte pessoa : ContribuinteDAO.getInstance().selectAll()) {
+			if(contribuinte.getCpf().equals(pessoa.getCpf()))
+				throw new Exception();
+		}
+		
+		for(Contribuinte pessoa : ContribuinteDAO.getInstance().selectAll()) {
+			for(Dependente dep : DependenteDAO.getInstance().selectId(pessoa.getId())) {
+				if(dep.getCpf().equals(contribuinte.getCpf()))
+					throw new Exception();
+			}
+		}
+		
 		cDao.insert(contribuinte);
 		
-		contribuintes.add(contribuinte);
+		contribuintes = ContribuinteDAO.getInstance().selectAll();
 	}
 	
 	public void atualizaContribuinte(Contribuinte contribuinte) {
@@ -72,18 +94,46 @@ public class Sistema {
 		contribuintes = ContribuinteDAO.getInstance().selectAll();
 	}
 	
-	public void inserirDependente(Dependente dep, int index) {		
+	public void inserirDependente(Dependente dep, int id) throws Exception {		
 		dDao = DependenteDAO.getInstance();
-		dDao.insert(dep, contribuintes.get(index).getId());
+		dDao.insert(dep, id);
 		
-		contribuintes.get(index).getDependentes().add(dep);
+		for(Contribuinte pessoa : ContribuinteDAO.getInstance().selectAll()) {
+			if(dep.getCpf().equals(pessoa.getCpf()))
+				throw new Exception();
+		}
+		
+		for(Contribuinte pessoa : ContribuinteDAO.getInstance().selectAll()) {
+			for(Dependente dependente : DependenteDAO.getInstance().selectId(pessoa.getId())) {
+				if(dep.getCpf().equals(dependente.getCpf()))
+					throw new Exception();
+			}
+		}
 	}
 	
-	public void inserirPessoaJuridica(PessoaJuridica pj) {
+	public void atualizarDependente(Dependente dependente) {
+		dDao = DependenteDAO.getInstance();
+		dDao.update(dependente);
+	}
+	
+	public void deletarDependente(int ID) {		
+		DependenteDAO.getInstance().delete(ID);
+	}
+	
+	public void inserirPessoaJuridica(PessoaJuridica pj) throws Exception {
 		pjDao = PessoaJuridicaDAO.getInstance();
+		
+		if(PessoaJuridicaDAO.getInstance().selectAll().isEmpty())
+			PessoaJuridicaDAO.getInstance().restart();
+		
+		for(PessoaJuridica pessoa : PessoaJuridicaDAO.getInstance().selectAll()) {
+			if(pj.getCnpj().equals(pessoa.getCnpj()))
+				throw new Exception();
+		}
+		
 		pjDao.insert(pj);
 		
-		pjs.add(pj);
+		pjs = PessoaJuridicaDAO.getInstance().selectAll();
 	}
 	
 	public void atualizaPessoaJuridica(PessoaJuridica pj) {
@@ -94,8 +144,61 @@ public class Sistema {
 	}
 	
 	public void deletaPessoaJuridica(int ID) {
+		
+		NotaFiscalDAO.getInstance().deletePj(ID);
+		ContrachequeDAO.getInstance().deletePj(ID);
 		PessoaJuridicaDAO.getInstance().delete(ID);
 		
 		pjs = PessoaJuridicaDAO.getInstance().selectAll();
+	}
+	
+	public void inserirBem(Bem bem, int id) {
+		bDao = BemDAO.getInstance();
+		bDao.insert(bem, id);
+	}
+	
+	public void atualizarBem(Bem bem) {
+		bDao = BemDAO.getInstance();
+		bDao.update(bem);
+	}
+	
+	public void deletarBem(int ID) {
+		BemDAO.getInstance().delete(ID);
+	}
+	
+	public ArrayList<Dependente> buscaDependente(int ID) {
+		dDao = DependenteDAO.getInstance();
+		ArrayList<Dependente> dependentes = dDao.selectId(ID);
+		return dependentes;
+	}
+	
+	public ArrayList<NotaFiscal> buscaNotaFiscal(int ID) {
+		nfDao = NotaFiscalDAO.getInstance();
+		ArrayList<NotaFiscal> notas = nfDao.selectId(ID);
+		return notas;
+	}
+	
+	public ArrayList<NotaFiscal> buscaNotaFiscalPj(int ID) {
+		nfDao = NotaFiscalDAO.getInstance();
+		ArrayList<NotaFiscal> notas = nfDao.selectPj(ID);
+		return notas;
+	}
+	
+	public ArrayList<Contracheque> buscaContracheque(int ID) {
+		chDao = ContrachequeDAO.getInstance();
+		ArrayList<Contracheque> cheques = chDao.selectId(ID);
+		return cheques;
+	}
+	
+	public ArrayList<Contracheque> buscaContrachequePJ(int ID) {
+		chDao = ContrachequeDAO.getInstance();
+		ArrayList<Contracheque> cheques = chDao.selectPj(ID);
+		return cheques;
+	}
+	
+	public ArrayList<Bem> buscaBem(int ID) {
+		bDao = BemDAO.getInstance();
+		ArrayList<Bem> bens = bDao.selectId(ID);
+		return bens;
 	}
 }

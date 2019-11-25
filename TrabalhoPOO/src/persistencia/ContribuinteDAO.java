@@ -17,6 +17,7 @@ public class ContribuinteDAO {
 	private PreparedStatement sqlall;
 	private PreparedStatement sqlselectcpf;
 	private PreparedStatement sqlupdate;
+	private PreparedStatement sqlrestart;
 	
 	public static ContribuinteDAO getInstance() {
 		if(instance == null) 
@@ -34,8 +35,16 @@ public class ContribuinteDAO {
 			sqlselectcpf = conn.prepareStatement("select * from contribuintes where cpf like ?");
 			sqlall = conn.prepareStatement("select * from contribuintes");
 			sqlupdate = conn.prepareStatement("update contribuintes set nome = ?, endereco = ?, cpf = ?, idade = ?, conta_bancaria = ? where id = ?");
+			sqlrestart = conn.prepareStatement("alter sequence contribuintes_id_seq restart");
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void restart() {
+		try {
+			sqlrestart.executeQuery();
+		} catch (SQLException e) {
 		}
 	}
 	

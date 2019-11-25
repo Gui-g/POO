@@ -15,6 +15,10 @@ public class BemDAO {
 	private PreparedStatement sqlinsert;
 	private PreparedStatement sqlselect;
 	private PreparedStatement sqlall;
+	private PreparedStatement sqlselectid;
+	private PreparedStatement sqlupdate;
+	private PreparedStatement sqlselectidbem;
+	private PreparedStatement sqlsum;
 	
 	public static BemDAO getInstance() {
 		if(instance == null) 
@@ -26,10 +30,14 @@ public class BemDAO {
 	private BemDAO() {
 		Connection conn = Conexao.getConexao();
 		try {
-			sqlinsert = conn.prepareStatement("insert into bem (id, nome, tipo, valor) values (?, ?, ?, ?)");
-			sqldelete = conn.prepareStatement("delete from bem where id = ?");
-			sqlselect = conn.prepareStatement("select * from bem where id = ?");
-			sqlall = conn.prepareStatement("select id from bem");
+			sqlinsert = conn.prepareStatement("insert into bens (nome, tipo, valor, id_contribuinte) values (?, ?, ?, ?)");
+			sqldelete = conn.prepareStatement("delete from bens where id = ?");
+			sqlselect = conn.prepareStatement("select * from bens where id = ?");
+			sqlall = conn.prepareStatement("select id from bens");
+			sqlselectid = conn.prepareStatement("select id_contribuinte from bens where id = ?");
+			sqlupdate = conn.prepareStatement("update bens set nome = ?, tipo = ?, valor = ? where id = ?");
+			sqlselectidbem = conn.prepareStatement("select * from bens where id_contribuinte = ?");
+			sqlsum = conn.prepareStatement("select sum(valor) from bens where id_contribuinte = ?");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -46,11 +54,64 @@ public class BemDAO {
 		
 	}
 	
-	public void insert(Bem bem) {
+	public void update(Bem bem) {
 		try {
-			sqlinsert.setString(2, bem.getNome());
-			sqlinsert.setString(3, bem.getTipo());
-			sqlinsert.setFloat(4, bem.getValor());
+			sqlupdate.setInt(4, bem.getId());
+			sqlupdate.setString(1, bem.getNome());
+			sqlupdate.setString(2, bem.getTipo());
+			sqlupdate.setFloat(3, bem.getValor());
+			sqlupdate.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public float soma(int ID) {
+		ResultSet rs;
+		Float sum = 0.0F;
+		try {
+			sqlsum.setInt(1, ID);
+			rs = sqlsum.executeQuery();
+			if(rs.next() ) {
+				String resultado = rs.getString(1);
+				sum = Float.parseFloat(resultado);
+			}
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return sum;
+	}
+	
+	public ArrayList<Bem> selectId(int id) {
+		ResultSet rs;
+		ArrayList<Bem> bens = new ArrayList<Bem>();
+		Bem bem;
+		
+		try {
+			sqlselectidbem.setInt(1, id);
+			rs = sqlselectidbem.executeQuery();
+			while(rs.next()) {
+				bem = new Bem();
+				bem.setId(rs.getInt("id"));
+				bem.setNome(rs.getString("nome"));
+				bem.setTipo(rs.getString("tipo"));
+				bem.setValor(rs.getFloat("valor"));
+				bens.add(bem);
+			} 
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return bens;
+	}
+	
+	public void insert(Bem bem, int id) {
+		try {
+			sqlinsert.setString(1, bem.getNome());
+			sqlinsert.setString(2, bem.getTipo());
+			sqlinsert.setFloat(3, bem.getValor());
+			sqlinsert.setInt(4, id);
 			sqlinsert.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -76,6 +137,23 @@ public class BemDAO {
 		}
 		
 		return bem;
+	}
+	
+	public int selectIdContrib(int id) {
+		ResultSet rs;
+		int res = -1;
+		
+		try {
+			sqlselectid.setInt(1, id);
+			rs = sqlselectid.executeQuery();
+			if(rs.next()) {
+				res = rs.getInt("id_contribuinte");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return res;
 	}
 	
 	public ArrayList<Bem> getBem() {

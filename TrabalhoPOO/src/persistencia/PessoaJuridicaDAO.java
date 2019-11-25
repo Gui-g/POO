@@ -17,6 +17,7 @@ public class PessoaJuridicaDAO {
 	private PreparedStatement sqlall;
 	private PreparedStatement sqlupdate;
 	private PreparedStatement sqlselectcnpj;
+	private PreparedStatement sqlrestart;
 	
 	public static PessoaJuridicaDAO getInstance() {
 		if(instance == null) 
@@ -32,10 +33,18 @@ public class PessoaJuridicaDAO {
 			sqldelete = conn.prepareStatement("delete from pessoa_juridica where id = ?");
 			sqlselect = conn.prepareStatement("select * from pessoa_juridica where id = ?");
 			sqlall = conn.prepareStatement("select * from pessoa_juridica");
-			sqlselectcnpj = conn.prepareStatement("select * from pessoa_juridica where cnpj = ?");
+			sqlselectcnpj = conn.prepareStatement("select * from pessoa_juridica where cnpj like ?");
 			sqlupdate = conn.prepareStatement("update pessoa_juridica set cnpj = ?, nomepj = ?, endereco = ?, num_funcionarios = ? where id = ?");
+			sqlrestart = conn.prepareStatement("alter sequence pessoa_juridica_id_seq restart");
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void restart() {
+		try {
+			sqlrestart.executeQuery();
+		} catch (SQLException e) {
 		}
 	}
 	
@@ -53,9 +62,9 @@ public class PessoaJuridicaDAO {
 	public void update(PessoaJuridica pj) {
 		try {
 			sqlupdate.setInt(5, pj.getId());
-			sqlupdate.setString(1, pj.getNomePJ());
-			sqlupdate.setString(2, pj.getEndereco());
-			sqlupdate.setString(3, pj.getCnpj());
+			sqlupdate.setString(2, pj.getNomePJ());
+			sqlupdate.setString(3, pj.getEndereco());
+			sqlupdate.setString(1, pj.getCnpj());
 			sqlupdate.setInt(4, pj.getNumFuncionarios());
 			sqlupdate.executeUpdate();
 		} catch (SQLException e) {

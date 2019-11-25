@@ -15,8 +15,10 @@ public class DependenteDAO {
 	private PreparedStatement sqlinsert;
 	private PreparedStatement sqlselect;
 	private PreparedStatement sqlall;
-	private PreparedStatement sqlselectcpf;
+	private PreparedStatement sqlselectid;
 	private PreparedStatement sqlupdate;
+	private PreparedStatement sqlselectcontrib;
+	private PreparedStatement resetid;
 	
 	public static DependenteDAO getInstance() {
 		if(instance == null) 
@@ -31,9 +33,19 @@ public class DependenteDAO {
 			sqlinsert = conn.prepareStatement("insert into dependentes (nome, endereco, cpf, idade, id_contribuinte) values (?, ?, ?, ?, ?)");
 			sqldelete = conn.prepareStatement("delete from dependentes where id = ?");
 			sqlselect = conn.prepareStatement("select * from dependentes where id = ?");
-			sqlselectcpf = conn.prepareStatement("select * from dependentes where cpf like ?");
-			sqlall = conn.prepareStatement("select * from contribuintes");
-			sqlupdate = conn.prepareStatement("update contribuintes set nome = ?, endereco = ?, cpf = ?, idade = ? where id = ?");
+			sqlselectid = conn.prepareStatement("select * from dependentes where id_contribuinte = ?");
+			sqlall = conn.prepareStatement("select * from dependentes");
+			sqlupdate = conn.prepareStatement("update dependentes set nome = ?, endereco = ?, cpf = ?, idade = ? where id = ?");
+			sqlselectcontrib = conn.prepareStatement("select id_contribuinte from dependentes where id = ?");
+			resetid = conn.prepareStatement("alter sequence id_seq restart with 1");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void restart() {
+		try {
+			resetid.executeQuery();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -76,14 +88,14 @@ public class DependenteDAO {
 		}
 	}
 	
-	public ArrayList<Dependente> selectCpf(String cpf) {
+	public ArrayList<Dependente> selectId(int id) {
 		ResultSet rs;
 		ArrayList<Dependente> dependentes = new ArrayList<Dependente>();
 		Dependente pessoa;
 		
 		try {
-			sqlselectcpf.setString(1, String.format("%%%s%%", cpf));
-			rs = sqlselectcpf.executeQuery();
+			sqlselectid.setInt(1, id);
+			rs = sqlselectid.executeQuery();
 			while(rs.next()) {
 				pessoa = new Dependente();
 				pessoa.setId(rs.getInt("id"));
@@ -120,6 +132,23 @@ public class DependenteDAO {
 		}
 		
 		return pessoa;
+	}
+	
+	public int selectIdContrib(int id) {
+		ResultSet rs;
+		int res = -1;
+		
+		try {
+			sqlselectcontrib.setInt(1, id);
+			rs = sqlselectcontrib.executeQuery();
+			if(rs.next()) {
+				res = rs.getInt("id_contribuinte");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return res;
 	}
 	
 	public ArrayList<Dependente> selectAll() {
