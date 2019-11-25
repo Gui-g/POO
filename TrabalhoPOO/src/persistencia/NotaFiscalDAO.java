@@ -23,6 +23,7 @@ public class NotaFiscalDAO {
 	private PreparedStatement sqlsum;
 	private PreparedStatement sqlsumpj;
 	private PreparedStatement sqlselectpj;
+	private PreparedStatement sqlrestart;
 	
 	public static NotaFiscalDAO getInstance() {
 		if(instance == null) 
@@ -46,6 +47,8 @@ public class NotaFiscalDAO {
 			sqldeletepj = conn.prepareStatement("delete from nota_fiscal where id_pj = ?");
 			sqlsum = conn.prepareStatement("select sum(valor) from nota_fiscal where id_contribuinte = ?");
 			sqlsumpj = conn.prepareStatement("select sum(valor) from nota_fiscal where id_pj = ?");
+			sqlrestart = conn.prepareStatement("alter sequence nota_fiscal_id_seq restart");
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -60,6 +63,13 @@ public class NotaFiscalDAO {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public void restart() {
+		try {
+			sqlrestart.executeQuery();
+		} catch (SQLException e) {
+		}
 	}
 	
 	public float soma(int ID) throws Exception {
@@ -233,7 +243,7 @@ public class NotaFiscalDAO {
 		return res;
 	}
 	
-	public ArrayList<NotaFiscal> getNotas() {
+	public ArrayList<NotaFiscal> selectAll() {
 		ResultSet rs;
 		ArrayList<NotaFiscal> notas = new ArrayList<NotaFiscal>();
 		

@@ -23,6 +23,7 @@ public class ContrachequeDAO {
 	private PreparedStatement sqlsum;
 	private PreparedStatement sqlsumpj;
 	private PreparedStatement sqlselectpj;
+	private PreparedStatement sqlrestart;
 	
 	public static ContrachequeDAO getInstance() {
 		if(instance == null) 
@@ -46,6 +47,7 @@ public class ContrachequeDAO {
 			sqlsum = conn.prepareStatement("select sum(valor) from contracheque where id_contribuinte = ?");
 			sqlsumpj = conn.prepareStatement("select sum(valor) from contracheque where id_pj = ?");
 			sqlselectpj = conn.prepareStatement("select * from contracheque where id_pj = ?");
+			sqlrestart = conn.prepareStatement("alter sequence contracheque_id_seq restart");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -60,6 +62,13 @@ public class ContrachequeDAO {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public void restart() {
+		try {
+			sqlrestart.executeQuery();
+		} catch (SQLException e) {
+		}
 	}
 	
 	public void deletePj(int id) {
@@ -233,7 +242,7 @@ public class ContrachequeDAO {
 		return res;
 	}
 	
-	public ArrayList<Contracheque> getNotas() {
+	public ArrayList<Contracheque> selectAll() {
 		ResultSet rs;
 		ArrayList<Contracheque> cheques = new ArrayList<Contracheque>();
 		

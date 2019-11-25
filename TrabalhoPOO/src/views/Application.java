@@ -425,7 +425,11 @@ public class Application {
 					ArrayList<Bem> lista = sistema.buscaBem(ID);
 					atualizaTabelaConsultaBens(lista);
 					
-					txtTotal.setText(String.valueOf(BemDAO.getInstance().soma(ID)));
+					try {
+						txtTotal.setText(String.valueOf(BemDAO.getInstance().soma(ID)));
+					} catch (Exception e1) {
+						infoBox("Nenhum bem cadastrado", "ERROR");
+					}
 				}
 				else if(rdbtnReceitas.isSelected()) {
 					ID = sistema.getContribuintes().get(comboCpfConsulta.getSelectedIndex()).getId();
@@ -697,7 +701,6 @@ public class Application {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				if(tblDep.getSelectedRow() != -1) {
-					System.out.println((int) tblDep.getValueAt(tblDep.getSelectedRow(), 0));
 					ID = (int) tblDep.getValueAt(tblDep.getSelectedRow(), 0);
 					sistema.deletarDependente(ID);
 					ID = sistema.getContribuintes().get(comboFiltroDep.getSelectedIndex()).getId();

@@ -19,6 +19,7 @@ public class BemDAO {
 	private PreparedStatement sqlupdate;
 	private PreparedStatement sqlselectidbem;
 	private PreparedStatement sqlsum;
+	private PreparedStatement sqlrestart;
 	
 	public static BemDAO getInstance() {
 		if(instance == null) 
@@ -38,8 +39,16 @@ public class BemDAO {
 			sqlupdate = conn.prepareStatement("update bens set nome = ?, tipo = ?, valor = ? where id = ?");
 			sqlselectidbem = conn.prepareStatement("select * from bens where id_contribuinte = ?");
 			sqlsum = conn.prepareStatement("select sum(valor) from bens where id_contribuinte = ?");
+			sqlrestart = conn.prepareStatement("alter sequence bens_id_seq restart");
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void restart() {
+		try {
+			sqlrestart.executeQuery();
+		} catch (SQLException e) {
 		}
 	}
 	
@@ -66,7 +75,7 @@ public class BemDAO {
 		}
 	}
 	
-	public float soma(int ID) {
+	public float soma(int ID) throws Exception {
 		ResultSet rs;
 		Float sum = 0.0F;
 		try {
@@ -74,6 +83,8 @@ public class BemDAO {
 			rs = sqlsum.executeQuery();
 			if(rs.next() ) {
 				String resultado = rs.getString(1);
+				if(resultado.equals(""))
+					throw new Exception();
 				sum = Float.parseFloat(resultado);
 			}
 		} catch(SQLException e) {
@@ -156,7 +167,7 @@ public class BemDAO {
 		return res;
 	}
 	
-	public ArrayList<Bem> getBem() {
+	public ArrayList<Bem> selectAll() {
 		ResultSet rs;
 		ArrayList<Bem> bens = new ArrayList<Bem>();
 		

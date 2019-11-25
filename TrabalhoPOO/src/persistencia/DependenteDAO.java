@@ -37,7 +37,7 @@ public class DependenteDAO {
 			sqlall = conn.prepareStatement("select * from dependentes");
 			sqlupdate = conn.prepareStatement("update dependentes set nome = ?, endereco = ?, cpf = ?, idade = ? where id = ?");
 			sqlselectcontrib = conn.prepareStatement("select id_contribuinte from dependentes where id = ?");
-			resetid = conn.prepareStatement("alter sequence id_seq restart with 1");
+			resetid = conn.prepareStatement("alter sequence dependentes_id_seq restart with 1");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -47,7 +47,6 @@ public class DependenteDAO {
 		try {
 			resetid.executeQuery();
 		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 	}
 	

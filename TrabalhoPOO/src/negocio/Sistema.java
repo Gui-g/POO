@@ -41,11 +41,19 @@ public class Sistema {
 	
 	public void insereNotaFiscal(NotaFiscal nota, int contribuinte, int pj) {
 		nfDao = NotaFiscalDAO.getInstance();
+		
+		if(NotaFiscalDAO.getInstance().selectAll().isEmpty())
+			NotaFiscalDAO.getInstance().restart();
+		
 		nfDao.insert(nota, contribuintes.get(contribuinte).getId(), pjs.get(pj).getId());
 	}
 	
 	public void insereContracheque(Contracheque cheque, int contribuinte, int pj) {
 		chDao = ContrachequeDAO.getInstance();
+		
+		if(ContrachequeDAO.getInstance().selectAll().isEmpty())
+			ContrachequeDAO.getInstance().restart();
+		
 		chDao.insert(cheque, contribuintes.get(contribuinte).getId(), pjs.get(pj).getId());
 	}
 	
@@ -96,19 +104,26 @@ public class Sistema {
 	
 	public void inserirDependente(Dependente dep, int id) throws Exception {		
 		dDao = DependenteDAO.getInstance();
-		dDao.insert(dep, id);
+		
+		if(DependenteDAO.getInstance().selectAll().isEmpty())
+			DependenteDAO.getInstance().restart();
 		
 		for(Contribuinte pessoa : ContribuinteDAO.getInstance().selectAll()) {
-			if(dep.getCpf().equals(pessoa.getCpf()))
+			if(dep.getCpf().equals(pessoa.getCpf())) {
+				System.out.println(dep.getCpf().equals(pessoa.getCpf()));
 				throw new Exception();
+			}
 		}
 		
 		for(Contribuinte pessoa : ContribuinteDAO.getInstance().selectAll()) {
 			for(Dependente dependente : DependenteDAO.getInstance().selectId(pessoa.getId())) {
-				if(dep.getCpf().equals(dependente.getCpf()))
+				if(dep.getCpf().equals(dependente.getCpf())) {
 					throw new Exception();
+				}
 			}
 		}
+		
+		dDao.insert(dep, id);
 	}
 	
 	public void atualizarDependente(Dependente dependente) {
@@ -154,6 +169,10 @@ public class Sistema {
 	
 	public void inserirBem(Bem bem, int id) {
 		bDao = BemDAO.getInstance();
+		
+		if(BemDAO.getInstance().selectAll().isEmpty())
+			BemDAO.getInstance().restart();
+		
 		bDao.insert(bem, id);
 	}
 	
